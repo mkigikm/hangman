@@ -2,7 +2,7 @@
 
 require 'dispel'
 
-module HangmanDisplay
+module HangmanDisplayHelpers
   attr_accessor :game
 
   def board_str(board)
@@ -18,53 +18,8 @@ module HangmanDisplay
   end
 end
 
-class HangmanDispelDisplay
-  include HangmanDisplay
-
-  def welcome
-    Dispel::Screen.open do |screen|
-      screen.draw "Welcome to Hangman! Press enter to begin"
-
-      Dispel::Keyboard.output do |key|
-        break if key == :enter
-      end
-    end
-  end
-
-  def begin_turn(board, misses, guess_history)
-    Dispel::Screen.open do |screen|
-      screen.draw(["Missed #{misses}", guess_history,
-                    board_str(board)]).join("\n")
-    end
-  end
-
-  def win(board, misses, guess_history)
-  end
-
-  def loss(board, misses, guess_history)
-  end
-end
-
-class HangmanScrollingDisplay
-  include HangmanDisplay
-
-  def welcome
-    puts "Welcome to Hangman!"
-  end
-
-  def display_guessing_turn
-    puts "Missed #{@game.misses} so far"
-    puts board_str(@game.board)
-    puts history_str(@game.guess_history)
-  end
-
-  def display_win
-    puts "You Win!"
-  end
-
-  def display_loss
-    puts "You Lose!"
-  end
+class HangmanDisplay
+  include HangmanDisplayHelpers
 
   def play(game)
     @game = game
@@ -80,6 +35,54 @@ class HangmanScrollingDisplay
     else
       display_loss
     end
+  end
+end
+
+class HangmanDispelDisplay < HangmanDisplay
+  def get_guess_input
+    guess = ""
+
+    Dispel::Screen.open do |screen|
+      screen.draw [history_str(@game.history),
+        board_str(@game.board)].join("\n")
+      Dispel::Keyboard.output do |key|
+        if ('a'..'z').include?(key)
+          guess = key
+          break
+        end
+      end
+    end
+
+    guess
+  end
+
+  def display_guessing_turn
+  end
+
+  def display_win
+  end
+
+  def display_loss
+  end
+end
+
+class HangmanScrollingDisplay < HangmanDisplay
+  def welcome
+    puts "Welcome to Hangman!"
+  end
+
+  def display_guessing_turn
+    puts "Missed #{@game.misses} so far"
+    puts board_str(@game.board)
+    puts history_str(@game.history)
+  end
+
+  def display_win
+    puts "You Win!"
+  end
+
+  def display_loss
+    puts "You Lose!"
   end
 
   def get_guess_input
@@ -127,7 +130,7 @@ end
 class HangmanGame
   MAX_MISSES = 8
 
-  attr_reader :board, :misses, :guess_history
+  attr_reader :board, :misses, :history
 
   def initialize(referee, guesser)
     @referee = referee
@@ -149,13 +152,13 @@ class HangmanGame
   def get_secret
     length = @referee.choose_secret
     @board = [nil] * length
-    @guess_history = []
+    @history = []
     @misses = 0
   end
 
   def take_turn
     guess = @guesser.take_guess(@board)
-    @guess_history << guess
+    @history << guess
 
     guess_result = @referee.check_guess(guess)
     @misses += 1 if guess_result.empty?
@@ -164,7 +167,7 @@ class HangmanGame
 end
 
 if __FILE__ == $PROGRAM_NAME
-  display = HangmanScrollingDisplay.new
+  display = HangmanDispelDisplay.new
   ref = ComputerPlayer.new
   guesser = HumanPlayer.new(display)
   game = HangmanGame.new(ref, guesser)
