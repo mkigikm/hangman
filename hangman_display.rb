@@ -88,12 +88,11 @@ class HangmanDispelDisplay < HangmanDisplay
   end
 
   def display_win
-    #puts "hoorj!"
     display_finish("You win!")
   end
 
-  def display_loss
-    display_finish("You suck!")
+  def display_loss(secret)
+    display_finish("You suck! #{secret} would have save you.")
   end
 
   private

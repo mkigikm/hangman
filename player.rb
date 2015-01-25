@@ -14,8 +14,8 @@ class HumanGuesser
     @display.display_win
   end
 
-  def loss
-    @display.display_loss
+  def loss(secret)
+    @display.display_loss(secret)
   end
 end
 
@@ -43,5 +43,9 @@ class ComputerReferee
         correct << i if c == guess
       end
     end
+  end
+
+  def tell_secret
+    @secret
   end
 end

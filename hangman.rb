@@ -50,7 +50,7 @@ class HangmanGame
     if win?
       @guesser.win
     else
-      @guesser.loss
+      @guesser.loss(@referee.tell_secret)
     end
   end
 end
