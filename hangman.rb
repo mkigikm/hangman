@@ -58,9 +58,11 @@ end
 
 if __FILE__ == $PROGRAM_NAME
   display = HangmanScrollingDisplay.new
-  ref = HumanReferee.new(display)
-  guesser = ComputerGuesser.new("dictionary.txt")
-  game = HangmanGame.new(ref, guesser)
+  cref = ComputerReferee.new("dictionary.txt")
+  href = HumanReferee.new(display)
+  cguesser = ComputerGuesser.new("dictionary.txt")
+  hguesser = HumanGuesser.new(display)
+  game = HangmanGame.new(cref, hguesser)
   display.game = game
 
   game.play

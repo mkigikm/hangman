@@ -130,8 +130,9 @@ class HangmanScrollingDisplay < HangmanDisplay
     puts "You Win!"
   end
 
-  def display_loss
-    puts "You Lose!"
+  def display_loss(secret)
+    display_board
+    puts "You Lose! #{secret} would have saved you"
   end
 
   def get_guess_input
