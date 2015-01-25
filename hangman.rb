@@ -1,41 +1,107 @@
-class HangmanDisplay
+#!/usr/bin/env ruby
+
+require 'dispel'
+
+module HangmanDisplay
+  attr_accessor :game
+
+  def board_str(board)
+    board.map { |c| c.nil? ? '_' : c }.join(' ')
+  end
+
+  def history_str(history)
+    history_str = ('a'..'z').to_a.map do |c|
+      history.include?(c) ? ' ' : c
+    end
+    history_str = [history_str[0..7].join, history_str[8..15].join,
+    history_str[16..-1].join].join("\n")
+  end
+end
+
+class HangmanDispelDisplay
+  include HangmanDisplay
+
+  def welcome
+    Dispel::Screen.open do |screen|
+      screen.draw "Welcome to Hangman! Press enter to begin"
+
+      Dispel::Keyboard.output do |key|
+        break if key == :enter
+      end
+    end
+  end
+
+  def begin_turn(board, misses, guess_history)
+    Dispel::Screen.open do |screen|
+      screen.draw(["Missed #{misses}", guess_history,
+                    board_str(board)]).join("\n")
+    end
+  end
+
+  def win(board, misses, guess_history)
+  end
+
+  def loss(board, misses, guess_history)
+  end
+end
+
+class HangmanScrollingDisplay
+  include HangmanDisplay
+
   def welcome
     puts "Welcome to Hangman!"
   end
 
-  def begin_turn(board, misses, guess_history)
-    board_str = board.map { |c| c.nil? ? '_' : c }.join(' ')
-    history_str = ('a'..'z').to_a.map do |c|
-      guess_history.include?(c) ? ' ' : c
-    end
-    history_str = [history_str[0..7].join, history_str[8..15].join,
-      history_str[16..-1].join].join('\n')
-    puts "Missed #{misses} so far"
-    puts history_str
-    puts board_str
+  def display_guessing_turn
+    puts "Missed #{@game.misses} so far"
+    puts board_str(@game.board)
+    puts history_str(@game.guess_history)
   end
 
-  def win(board, misses, guess_history)
+  def display_win
     puts "You Win!"
   end
 
-  def loss(board, misses, guess_history)
+  def display_loss
     puts "You Lose!"
   end
-end
 
-class HumanPlayer
-  def tell_secret_length(secret_length)
-    puts "The secret is #{secret_length} letters long."
+  def play(game)
+    @game = game
+
+    @game.get_secret
+
+    until @game.game_over?
+      display_guessing_turn
+      @game.take_turn
+    end
+    if @game.win?
+      display_win
+    else
+      display_loss
+    end
   end
 
-  def take_guess(board)
+  def get_guess_input
     guess = ""
     until ('a'..'z').include?(guess)
       puts "Choose a letter: "
       guess = gets.chomp[0].downcase
     end
-    return guess
+    guess
+  end
+end
+
+class HumanPlayer
+  def initialize(display)
+    @display = display
+  end
+
+  def tell_secret_length(secret_length)
+  end
+
+  def take_guess(board)
+    @display.get_guess_input
   end
 end
 
@@ -61,12 +127,11 @@ end
 class HangmanGame
   MAX_MISSES = 8
 
-  attr_reader :board
+  attr_reader :board, :misses, :guess_history
 
-  def initialize(referee, guesser, display)
+  def initialize(referee, guesser)
     @referee = referee
     @guesser = guesser
-    @display = display
   end
 
   def loss?
@@ -81,9 +146,14 @@ class HangmanGame
     win? || loss?
   end
 
-  def take_turn
-    @display.begin_turn(@board, @misses, @guess_history)
+  def get_secret
+    length = @referee.choose_secret
+    @board = [nil] * length
+    @guess_history = []
+    @misses = 0
+  end
 
+  def take_turn
     guess = @guesser.take_guess(@board)
     @guess_history << guess
 
@@ -91,25 +161,13 @@ class HangmanGame
     @misses += 1 if guess_result.empty?
     guess_result.each { |i| @board[i] = guess }
   end
+end
 
-  def play_game
-    @misses = 0
-    @guess_history = []
+if __FILE__ == $PROGRAM_NAME
+  display = HangmanScrollingDisplay.new
+  ref = ComputerPlayer.new
+  guesser = HumanPlayer.new(display)
+  game = HangmanGame.new(ref, guesser)
 
-    @display.welcome
-
-    secret_length = @referee.choose_secret
-    @guesser.tell_secret_length(secret_length)
-    @board = [nil] * secret_length
-
-    until game_over?
-      take_turn
-    end
-
-    if win?
-      @display.win(@board, @misses, @guess_history)
-    else
-      @display.loss(@board, @misses, @guess_history)
-    end
-  end
+  display.play(game)
 end
