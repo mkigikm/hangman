@@ -27,6 +27,7 @@ class HangmanGame
 
   def get_secret
     length = @referee.choose_secret
+    @guesser.tell_secret_length(length)
     @board = [nil] * length
     @history = []
     @misses = 0
@@ -56,9 +57,9 @@ class HangmanGame
 end
 
 if __FILE__ == $PROGRAM_NAME
-  display = HangmanDispelDisplay.new
-  ref = ComputerReferee.new("dictionary.txt")
-  guesser = HumanGuesser.new(display)
+  display = HangmanScrollingDisplay.new
+  ref = HumanReferee.new(display)
+  guesser = ComputerGuesser.new("dictionary.txt")
   game = HangmanGame.new(ref, guesser)
   display.game = game
 

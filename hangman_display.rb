@@ -119,7 +119,8 @@ end
 class HangmanScrollingDisplay < HangmanDisplay
   include HangmanDisplayHelpers
 
-  def display_guessing_turn
+  def display_board
+    puts man_str(@game.misses)
     puts "Missed #{@game.misses} so far"
     puts board_str(@game.board)
     puts history_str(@game.history)
@@ -134,12 +135,27 @@ class HangmanScrollingDisplay < HangmanDisplay
   end
 
   def get_guess_input
-    display_guessing_turn
+    display_board
+
     guess = ""
     until ('a'..'z').include?(guess)
       puts "Choose a letter: "
       guess = gets.chomp[0].downcase
     end
+
     guess
+  end
+
+  def get_secret_length
+    puts "How long is the word you are thing of? "
+    gets.to_i
+  end
+
+  def check_guess(guess)
+    display_board
+
+    puts "Where does '#{guess}' appear in you word?"
+    locations = gets.chomp
+    locations == "" ? [] : locations.split(",").map(&:to_i)
   end
 end
