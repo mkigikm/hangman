@@ -92,7 +92,7 @@ class HangmanDispelDisplay < HangmanDisplay
   end
 
   def display_loss(secret)
-    display_finish("You suck! #{secret} would have save you.")
+    display_finish("You lose! #{secret} would have save you.")
   end
 
   private
@@ -127,7 +127,7 @@ class HangmanScrollingDisplay < HangmanDisplay
   end
 
   def display_win
-    puts "You Win!"
+    puts "You Win! The secret was #{secret}"
   end
 
   def display_loss(secret)
